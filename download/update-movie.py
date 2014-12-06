@@ -50,16 +50,65 @@ def get_info( url):
     Type = Type_re.findall(content)
     
 
+    #语言
+    language_re = re.compile(u'◎语　　言[　]+?([\s\S]+?)<[\s\S]*?◎')
+    language = language_re.findall(content)
     
-    language
-
-
-
+    #字幕
+    subtitles_re = re.compile(u'◎字　　幕[　]+?([\s\S]+?)<[\s\S]*?◎')
+    subtitles = subtitles_re.findall(content)
     
 
+    #文件格式
+    fileformat_re = re.compile(u'◎文件格式[　]+?([\s\S]+?)<[\s\S]*?◎')
+    fileformat = fileformat_re.findall(content)
+    
+
+    #视频尺寸，我们要的是视频尺寸width，height
+    moviesize_re = re.compile(u'◎视频尺寸[　]+?([\s\S]+?)<[\s\S]*?◎')
+    moviesize = moviesize_re.findall(content)
+    if moviesize:
+        width_re = re.compile(u'(\d*?) x \d*?')
+        width = width_re.findall(moviesize[0])
+        height_re = re.compile(u'\d*? x (\d*?)')
+        height = width_re.findall(moviesize[0])
+
+    #文件大小
+    size_re = re.compile(u'◎文件大小[　]+?([\s\S]+?)<[\s\S]*?◎')
+    size = size_re.findall(content)
+
+    #片长
+    duration_re = re.compile(u'◎片[ 　]+?长[　]+?([\s\S]+?)<[\s\S]*?◎')
+    duration = duration_re.findall(content)
+
+    #导演
+    director_re = re.compile(u'◎导　　演[　]+?([\s\S]+?)<[\s\S]*?◎')
+    director = director_re.findall(content)
+    
+
+    #list  主演     凯特·贝金赛尔  中间的点会出现问题
+    actors_re = re.compile(u'◎主　　演([\s\S]+?)◎')
+    actors = actors_re.findall(content)
+    actors = actors[0].split('<br />')
+    l = len(actors)
+    for i in range(l):
+        actors[i] = actors[i].strip()
+
+
+    #简介   这里有问题。可能简介下面还有东西，或者没有东西，</p> 和 ◎ 之间或关系。还没搞清楚
+    introduce_re = re.compile(u'◎[简|簡]　　介([\s\S]*?)</p>')
+    introduce = introduce_re.findall(content)
+    introduce = introduce[0].split('<br />')
+    
+
+    #介绍图
+    introduceimageurl_re = re.compile(u'◎片　　名[\s\S]*?src="(.*?)"[\s\S]*?</p>')
+    introduceimageurl = introduceimageurl_re.findall(content)
+    
+    
     #下载链接
-    url_re = re.compile('<td.+?bgcolor="#fdfddf"><a href="(.+?)">')
-    download_urls = url_re.findall(content)    
+    downloadlink_re = re.compile('<td.+?bgcolor="#fdfddf"><a href="(.+?)">')
+    downloadlink = downloadlink_re.findall(content)    
 
 
     '''
@@ -70,7 +119,6 @@ def get_info( url):
     
     print title[0].encode('utf8')
     
-    
 '''
     print publishdates
     if imageurl:
@@ -79,7 +127,18 @@ def get_info( url):
     print chname[0].encode('utf8')
     print name[0].encode('utf8')
     print Type[0].encode('gbk')
-
+    print language[0].encode('gbk')
+    if subtitles:
+        print subtitles[0].encode('gbk')
+    print fileformat
+    print size
+    print director[0].encode('gbk')
+    for actor in actors:
+        print actor.encode('gbk')
+    for intro in introduce:
+        print intro.encode('gbk')
+    print introduceimageurl
+        
 
     
     if names and download_urls:
