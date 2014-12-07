@@ -12,147 +12,252 @@ def save2(url, name):
     file_name.write("电影名字："+name+"\n")
     file_name.write("电影链接："+url+"\n")
 
-
-def get_info( url):
-    response = urllib2.urlopen(url)
-    content = response.read()
-    content = content.decode('gbk','ignore')
-
-    #获得名字
+def get_title(content):
+    """ 获得标题名字 """
     title_re = re.compile('<font color=#07519a>(.*?)</font>')
-    title = title_re.findall(content)    
+    title = title_re.findall(content)
+    if title:
+        title = title[0]
+    else:
+        title = None
+    print title
+    return title
 
-    #发布时间
+def get_publishdate(content):
+    """发布时间"""
     publishdate_re = re.compile(u'发布时间：(\d{4}-\d{2}-\d{2})')
-    publishdates = publishdate_re.findall(content)   
+    publishdate = publishdate_re.findall(content)
+    if publishdate:
+         publishdate = publishdate[0]
+    else:
+        publishdate == None
+    return publishdate
 
-    #list 电影海报图 多个取imageurl[-1]
+def get_imageurl(content):
+    """list 电影海报图 多个取imageurl[-1]"""
     imageurl_re = re.compile(u'<span style="FONT-SIZE: 12px">([\s\S]*?)◎')
     imageurl = imageurl_re.findall(content)
     if imageurl:
         imageurl_re = re.compile(u'[\s\S]*?src="(.*?)"[\s\S]*?')
-        imageurl = imageurl_re.findall(imageurl[0])  
+        imageurl = imageurl_re.findall(imageurl[0])
+    if imageurl:
+        imageurl = imageurl[-1]
+    else:
+        imageurl = None
+    return imageurl
 
-    # list 译名.
+def get_chname(content):
+    """ list 译名."""
     chname_re = re.compile(u'<span style="FONT-SIZE: 12px">[\s\S]*?◎[译|又]　　名\s*?([\s\S]+?)<[\s\S]*?◎片')
     chname = chname_re.findall(content)
     if chname:
-        chname = chname[0].split('/')       
+        chname = chname[0].split('/')
 
-    #list 片名.
+    return chname
+
+def get_name(content):
+    """list 片名."""
     name_re = re.compile(u'◎片　　名[　]+?([\s\S]+?)<[\s\S]*?◎年')
     name = name_re.findall(content)
     if name:
         name = name[0].split('/')
+    return name
 
-    #  类别
+def get_type(content):
+    """类别"""
     Type_re = re.compile(u'◎类　　[别|型][　]+?([\s\S]+?)<[\s\S]*?◎语')
     Type = Type_re.findall(content)
-    
+    if Type:
+        Type = Type[0]
+    else:
+        Type = None
+    return Type
 
-    #语言
+def get_language(content):
+    """语言"""
     language_re = re.compile(u'◎语　　言[　]+?([\s\S]+?)<[\s\S]*?◎')
     language = language_re.findall(content)
-    
-    #字幕
+    if language:
+        language = language[0]
+    else:
+        language = None
+    return language
+
+def get_subtitles(content):
+    """字幕"""
     subtitles_re = re.compile(u'◎字　　幕[　]+?([\s\S]+?)<[\s\S]*?◎')
     subtitles = subtitles_re.findall(content)
-    
+    if subtitles:
+        subtitles = subtitles[0]
+    else:
+        subtitles = None
+    return subtitles
 
+def get_fileformat(content):
     #文件格式
     fileformat_re = re.compile(u'◎文件格式[　]+?([\s\S]+?)<[\s\S]*?◎')
     fileformat = fileformat_re.findall(content)
-    
+    if fileformat:
+        fileformat = fileformat[0]
+    else:
+        fileformat = None
+    return fileformat
 
-    #视频尺寸，我们要的是视频尺寸width，height
+def get_width(content):
+    """视频尺寸，我们要的是视频尺寸width"""
     moviesize_re = re.compile(u'◎视频尺寸[　]+?([\s\S]+?)<[\s\S]*?◎')
     moviesize = moviesize_re.findall(content)
     if moviesize:
         width_re = re.compile(u'(\d*?) x \d*?')
         width = width_re.findall(moviesize[0])
-        height_re = re.compile(u'\d*? x (\d*?)')
-        height = width_re.findall(moviesize[0])
+        if width:
+            width = width[0]
+        else:
+            width = None
+    else:
+        width = None
+    return width
 
-    #文件大小
+def get_height(content):
+    """视频尺寸，我们要的是视频尺寸height"""
+    moviesize_re = re.compile(u'◎视频尺寸[　]+?([\s\S]+?)<[\s\S]*?◎')
+    moviesize = moviesize_re.findall(content)
+    if moviesize:
+        height_re = re.compile(u'\d*? x (\d*?)')
+        height = height_re.findall(moviesize[0])
+        if height:
+            height = height[0]
+        else:
+            height = None
+    else:
+        height = None
+    return height
+
+def get_size(content):
+    """文件大小"""
     size_re = re.compile(u'◎文件大小[　]+?([\s\S]+?)<[\s\S]*?◎')
     size = size_re.findall(content)
+    if size:
+        size = size[0]
+    else:
+        size = None
+    return size
 
-    #片长
+def get_duration(content):
+    """片长"""
     duration_re = re.compile(u'◎片[ 　]+?长[　]+?([\s\S]+?)<[\s\S]*?◎')
     duration = duration_re.findall(content)
+    if duration:
+        duration = duration[0]
+    else:
+        duration = None
+    return duration
 
-    #导演
+def get_director(content):
+    """导演"""
     director_re = re.compile(u'◎导　　演[　]+?([\s\S]+?)<[\s\S]*?◎')
     director = director_re.findall(content)
-    
+    if director:
+        director = director[0]
+    else:
+        director = None
+    return director
 
-    #list  主演     凯特·贝金赛尔  中间的点会出现问题
+def get_actors(content):
+    """list  主演     凯特·贝金赛尔  中间的点会出现问题"""
     actors_re = re.compile(u'◎主　　演([\s\S]+?)◎')
     actors = actors_re.findall(content)
-    actors = actors[0].split('<br />')
-    l = len(actors)
-    for i in range(l):
-        actors[i] = actors[i].strip()
+    if actors:
+        actors = actors[0].split('<br />')
+        l = len(actors)
+        for i in range(l):
+            actors[i] = actors[i].strip()
+    return actors
 
-
-    #简介   这里有问题。可能简介下面还有东西，或者没有东西，</p> 和 ◎ 之间或关系。还没搞清楚
-    introduce_re = re.compile(u'◎[简|簡]　　介([\s\S]*?)</p>')
+def get_introduce(content):
+    """简介"""
+    introduce_re = re.compile(u'◎[简|簡]　　介([\s\S]*?)◎')
     introduce = introduce_re.findall(content)
-    introduce = introduce[0].split('<br />')
-    
+    if not introduce:
+        introduce_re = re.compile(u'◎[简|簡]　　介([\s\S]*?)<img')
+        introduce = introduce_re.findall(content)
 
-    #介绍图
+    if not introduce:
+        introduce_re = re.compile(u'◎[简|簡]　　介([\s\S]*?)</p>')
+        introduce = introduce_re.findall(content)
+    if introduce:
+        introduce = introduce[0]
+        introduce = introduce.split('<br />')
+    else:
+        introduce = None
+    
+    return introduce
+
+def get_introduceimageurl(content):
+    """介绍图"""
     introduceimageurl_re = re.compile(u'◎片　　名[\s\S]*?src="(.*?)"[\s\S]*?</p>')
     introduceimageurl = introduceimageurl_re.findall(content)
-    
-    
-    #下载链接
+    if introduceimageurl:
+        introduceimageurl = introduceimageurl[0]
+    else:
+        introduceimageurl = None
+    return introduceimageurl
+
+def get_downloadlink(content):
+    """下载链接"""
     downloadlink_re = re.compile('<td.+?bgcolor="#fdfddf"><a href="(.+?)">')
-    downloadlink = downloadlink_re.findall(content)    
+    downloadlink = downloadlink_re.findall(content)   
+    if downloadlink:
+        downloadlink = downloadlink[0]
+    else:
+        downloadlink = None
+    return downloadlink
 
 
-    '''
-    上面是正则
-    ---
-    下面是输出
-    '''
-    
-    print title[0].encode('utf8')
-    
-'''
-    print publishdates
-    if imageurl:
-        print imageurl[-1]
-        
-    print chname[0].encode('utf8')
-    print name[0].encode('utf8')
-    print Type[0].encode('gbk')
-    print language[0].encode('gbk')
-    if subtitles:
-        print subtitles[0].encode('gbk')
-    print fileformat
-    print size
-    print director[0].encode('gbk')
-    for actor in actors:
-        print actor.encode('gbk')
-    for intro in introduce:
-        print intro.encode('gbk')
-    print introduceimageurl
-        
+# ------------我是华丽的分割线-----------------------------
 
-    
-    if names and download_urls:
-        save2(download_urls[0].decode('gbk').encode('utf8'),names[0].decode('gbk').encode('utf8'))
-'''
+def save_movie(con):
+    movie = {}
+    movie["title"] = get_title(con)
+    movie["name"] = get_name(con)
+    movie["type"] = get_type(con)
+    movie["language"] = get_language(con)
+    movie["subtitles"]= get_subtitles(con)
+    movie["fileformat"]= get_fileformat(con)
+    movie["width"] = get_width(con)
+    movie["height"] = get_height(con)
+    movie["size"] = get_size(con)
+    movie["duration"] = get_duration(con)
+    movie["director"] = get_director(con)
+    movie["actors"] = get_actors(con)
+    movie["introduce"] = get_introduce(con)
+    movie["introduceimageurl"] = get_introduceimageurl(con)
+    movie["downloadlink"] = get_downloadlink(con)
+    return movie
 
-def run( url):
+
+def get_info( url, movielist):
+    """得到所有信息"""
+    response = urllib2.urlopen(url)
+    content = response.read()
+    content = content.decode('gbk','ignore')
+
+    movie =save_movie(content)
+    if not movie['title']:
+        movielist.append(movie)
+    return movielist
+
+
+
+def run( url,movielist):
     response = urllib2.urlopen(url)
     content = response.read()
     ft = re.compile('<a href="(.*?)" class="ulink">')
     urls = ft.findall(content)
     for item in urls:
         new_url = 'http://www.ygdy8.net' + item
-        get_info(new_url)
+        movielist = (get_info(new_url,movielist))
+    return movielist
 
 def get_page_number():
     url = 'http://www.ygdy8.net/html/gndy/dyzz/index.html'
@@ -162,25 +267,16 @@ def get_page_number():
     number = url_re.findall(content.decode('gbk','ignore'))
     return int(number[0])
 
-'''
-if __name__ == '__main__':
-    numa = int(input("从第几页开始下载： "))
-    numb = int(input("一直下载到第几页： "))
-    for i in range(numa,numb+1):
-        url = 'http://www.ygdy8.net/html/gndy/dyzz/list_23_'+str(i) + '.html'
-        print "第 ",i," 页正在下载"
-        run(url)
-
-file_name.close()
-'''
 
 if __name__ == '__main__':
     page_number = get_page_number()
     print '共',page_number,'页'
+    movielist = []
     for i in range(page_number):
         url = 'http://www.ygdy8.net/html/gndy/dyzz/list_23_'+str(i+1) + '.html'
         print "第 ",i+1," 页正在下载"
-        run(url)
+        movielist = run(url, movielist)
+    
 
 file_name.close()
 
