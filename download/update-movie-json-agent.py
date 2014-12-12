@@ -4,21 +4,21 @@ import urllib
 import urllib2
 import re
 import time
-import MySQLdb
-def createdb():
-    conn = MySQLdb.connect(host='localhost',user='root',passwd='123456',charset='utf-8')
-    cursor = conn.cursor()
-    #如果没有数据库zy-movie,新建一张
-    cursor.execute( "create database if not exists zy-movie")
-    #选择数据库. 由于连接的时候无法确定是否存在zy-movie，如果没有生成一个.所以现在来选择.
-    conn.select_db('zy-movie')
+import json
+import proxyIP,user_agents
+import random
+
+
+file_name = open('fytt.json','w')
+
+movielist = []
 
 def get_title(content):
     """ 获得标题名字 """
-    title_re = re.compile('<font color=#07519a>(.*?)</font>')
+    title_re = re.compile(u'<font color=#07519a>(.*?)</font>')
     title = title_re.findall(content)
     if title:
-        title = title[0]
+        title = title[0].encode('utf8')
     else:
         title = None
     print title
@@ -29,7 +29,7 @@ def get_publishdate(content):
     publishdate_re = re.compile(u'发布时间：(\d{4}-\d{2}-\d{2})')
     publishdate = publishdate_re.findall(content)
     if publishdate:
-         publishdate = publishdate[0]
+         publishdate = publishdate[0].encode('utf8')
     else:
         publishdate == None
     return publishdate
@@ -42,7 +42,7 @@ def get_imageurl(content):
         imageurl_re = re.compile(u'[\s\S]*?src="(.*?)"[\s\S]*?')
         imageurl = imageurl_re.findall(imageurl[0])
     if imageurl:
-        imageurl = imageurl[-1]
+        imageurl = imageurl[-1].encode('utf8')
     else:
         imageurl = None
     return imageurl
@@ -53,7 +53,9 @@ def get_chname(content):
     chname = chname_re.findall(content)
     if chname:
         chname = chname[0].split('/')
-
+    l = len(chname)
+    for i in range(l):
+        chname[i] = chname[i].encode('utf8')
     return chname
 
 def get_name(content):
@@ -62,6 +64,9 @@ def get_name(content):
     name = name_re.findall(content)
     if name:
         name = name[0].split('/')
+    l = len(name)
+    for i in range(l):
+        name[i] = name[i].encode('utf8')
     return name
 
 def get_type(content):
@@ -69,7 +74,7 @@ def get_type(content):
     Type_re = re.compile(u'◎类　　[别|型][　]+?([\s\S]+?)<[\s\S]*?◎语')
     Type = Type_re.findall(content)
     if Type:
-        Type = Type[0]
+        Type = Type[0].encode('utf8')
     else:
         Type = None
     return Type
@@ -79,7 +84,7 @@ def get_language(content):
     language_re = re.compile(u'◎语　　言[　]+?([\s\S]+?)<[\s\S]*?◎')
     language = language_re.findall(content)
     if language:
-        language = language[0]
+        language = language[0].encode('utf8')
     else:
         language = None
     return language
@@ -89,7 +94,7 @@ def get_subtitles(content):
     subtitles_re = re.compile(u'◎字　　幕[　]+?([\s\S]+?)<[\s\S]*?◎')
     subtitles = subtitles_re.findall(content)
     if subtitles:
-        subtitles = subtitles[0]
+        subtitles = subtitles[0].encode('utf8')
     else:
         subtitles = None
     return subtitles
@@ -99,7 +104,7 @@ def get_fileformat(content):
     fileformat_re = re.compile(u'◎文件格式[　]+?([\s\S]+?)<[\s\S]*?◎')
     fileformat = fileformat_re.findall(content)
     if fileformat:
-        fileformat = fileformat[0]
+        fileformat = fileformat[0].encode('utf8')
     else:
         fileformat = None
     return fileformat
@@ -112,7 +117,7 @@ def get_width(content):
         width_re = re.compile(u'(\d*?) x \d*?')
         width = width_re.findall(moviesize[0])
         if width:
-            width = width[0]
+            width = width[0].encode('utf8')
         else:
             width = None
     else:
@@ -127,7 +132,7 @@ def get_height(content):
         height_re = re.compile(u'\d*? x (\d*?)')
         height = height_re.findall(moviesize[0])
         if height:
-            height = height[0]
+            height = height[0].encode('utf8')
         else:
             height = None
     else:
@@ -139,7 +144,7 @@ def get_size(content):
     size_re = re.compile(u'◎文件大小[　]+?([\s\S]+?)<[\s\S]*?◎')
     size = size_re.findall(content)
     if size:
-        size = size[0]
+        size = size[0].encode('utf8')
     else:
         size = None
     return size
@@ -149,7 +154,7 @@ def get_duration(content):
     duration_re = re.compile(u'◎片[ 　]+?长[　]+?([\s\S]+?)<[\s\S]*?◎')
     duration = duration_re.findall(content)
     if duration:
-        duration = duration[0]
+        duration = duration[0].encode('utf8')
     else:
         duration = None
     return duration
@@ -159,7 +164,7 @@ def get_director(content):
     director_re = re.compile(u'◎导　　演[　]+?([\s\S]+?)<[\s\S]*?◎')
     director = director_re.findall(content)
     if director:
-        director = director[0]
+        director = director[0].encode('utf8')
     else:
         director = None
     return director
@@ -173,6 +178,7 @@ def get_actors(content):
         l = len(actors)
         for i in range(l):
             actors[i] = actors[i].strip()
+            actors[i] = actors[i].encode('utf8')
     return actors
 
 def get_introduce(content):
@@ -189,6 +195,9 @@ def get_introduce(content):
     if introduce:
         introduce = introduce[0]
         introduce = introduce.split('<br />')
+        l = len(introduce)
+        for i in range(l):
+            introduce[i] = introduce[i].encode('utf8')
     else:
         introduce = None
     
@@ -199,7 +208,7 @@ def get_introduceimageurl(content):
     introduceimageurl_re = re.compile(u'◎片　　名[\s\S]*?src="(.*?)"[\s\S]*?</p>')
     introduceimageurl = introduceimageurl_re.findall(content)
     if introduceimageurl:
-        introduceimageurl = introduceimageurl[0]
+        introduceimageurl = introduceimageurl[0].encode('utf8')
     else:
         introduceimageurl = None
     return introduceimageurl
@@ -209,7 +218,7 @@ def get_downloadlink(content):
     downloadlink_re = re.compile('<td.+?bgcolor="#fdfddf"><a href="(.+?)">')
     downloadlink = downloadlink_re.findall(content)   
     if downloadlink:
-        downloadlink = downloadlink[0]
+        downloadlink = downloadlink[0].encode('utf8')
     else:
         downloadlink = None
     return downloadlink
@@ -236,47 +245,69 @@ def save_movie(con):
     movie["downloadlink"] = get_downloadlink(con)
     return movie
 
-
-def get_info( url, movielist):
-    """得到所有信息"""
-    response = urllib2.urlopen(url)
-    content = response.read()
-    content = content.decode('gbk','ignore')
-    time.sleep(1)
-    movie =save_movie(content)
-    if not movie['title']:
-        movielist.append(movie)
-    return movielist
+    
 
 
+def get_page_info( url):
+    """得到网页信息"""
+    try:
+        randomTime = random.uniform(0,1)
+        time.sleep(randomTime)
+        
+        proxy_ip = random.choice(proxyIP.proxy_list)
+        print proxy_ip
+        proxy_support = urllib2.ProxyHandler(proxy_ip)
+        opener = urllib2.build_opener(proxy_support, urllib2.HTTPHandler)
+        urllib2.install_opener(opener)
+        request = urllib2.Request(url)
+        user_agent = random.choice(user_agents.user_agents)
+        print user_agent
+        req = urllib2.Request(url,headers=user_agent)
+        html = urllib2.urlopen(req)
 
-def run( url,movielist):
-    response = urllib2.urlopen(url)
-    content = response.read()
+        if url == html.geturl():
+            content = html.read()
+            content = content.decode('gbk','ignore')
+            return content
+    except:
+        return get_page_info(url)
+
+def run( url):
+    content = get_page_info(url)
     ft = re.compile('<a href="(.*?)" class="ulink">')
     urls = ft.findall(content)
     for item in urls:
         new_url = 'http://www.ygdy8.net' + item
-        movielist = (get_info(new_url,movielist))
-    return movielist
+        content = get_page_info(new_url)
+        movie = save_movie(content)
+        
+        if movie['title']:
+            movielist.append(movie)
 
 def get_page_number():
     url = 'http://www.ygdy8.net/html/gndy/dyzz/index.html'
-    response = urllib2.urlopen(url)
-    content = response.read()
+    content = get_page_info(url)
     url_re = re.compile(u'共(\d*?)页')
-    number = url_re.findall(content.decode('gbk','ignore'))
+    number = url_re.findall(content)
     return int(number[0])
 
+def save():
+    moviecount = len(movielist)
+    movie_list = {'moviecount' : moviecount,'movielist':movielist}
+    movie = [movie_list]
+    movie_json = json.dumps(movie,sort_keys=False,ensure_ascii=False,indent=2)
+    print movie_json
+    json.dump(movie_json,fp = file_name,ensure_ascii=False)
+    file_name.close()
 
 if __name__ == '__main__':
-    
     page_number = get_page_number()
     print '共',page_number,'页'
-    movielist = []
     for i in range(page_number):
         url = 'http://www.ygdy8.net/html/gndy/dyzz/list_23_'+str(i+1) + '.html'
         print "第 ",i+1," 页正在下载"
-        movielist = run(url, movielist)
-        
+        run(url)
+    save()
+
+
 
