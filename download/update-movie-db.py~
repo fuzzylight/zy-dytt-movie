@@ -381,6 +381,7 @@ def run(url):
 	            if movie[var] == None:
 	                w = w + 1
 	        if w <= 3:
+
 	            print Count['movies'],movie['title']
 	            save(movie)
                 break
