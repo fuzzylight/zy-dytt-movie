@@ -7,18 +7,18 @@ import time
 import json
 import proxyIP,user_agents
 import random
+import MySQLdb
+
+Count = {}
 
 
-file_name = open('fytt.json','w')
-
-movielist = []
 
 def get_title(content):
     """ 获得标题名字 """
     title_re = re.compile(u'<font color=#07519a>(.*?)</font>')
     title = title_re.findall(content)
     if title:
-        title = title[0].encode('utf8')
+        title = title[0].encode('gbk')
     else:
         title = None
     print title
@@ -29,7 +29,7 @@ def get_publishdate(content):
     publishdate_re = re.compile(u'发布时间：(\d{4}-\d{2}-\d{2})')
     publishdate = publishdate_re.findall(content)
     if publishdate:
-         publishdate = publishdate[0].encode('utf8')
+         publishdate = publishdate[0].encode('gbk')
     else:
         publishdate == None
     return publishdate
@@ -42,7 +42,7 @@ def get_imageurl(content):
         imageurl_re = re.compile(u'[\s\S]*?src="(.*?)"[\s\S]*?')
         imageurl = imageurl_re.findall(imageurl[0])
     if imageurl:
-        imageurl = imageurl[-1].encode('utf8')
+        imageurl = imageurl[-1].encode('gbk')
     else:
         imageurl = None
     return imageurl
@@ -55,7 +55,7 @@ def get_chname(content):
         chname = chname[0].split('/')
     l = len(chname)
     for i in range(l):
-        chname[i] = chname[i].encode('utf8')
+        chname[i] = chname[i].encode('gbk')
     return chname
 
 def get_name(content):
@@ -66,7 +66,7 @@ def get_name(content):
         name = name[0].split('/')
     l = len(name)
     for i in range(l):
-        name[i] = name[i].encode('utf8')
+        name[i] = name[i].encode('gbk')
     return name
 
 def get_type(content):
@@ -74,7 +74,7 @@ def get_type(content):
     Type_re = re.compile(u'◎类　　[别|型][　]+?([\s\S]+?)<[\s\S]*?◎语')
     Type = Type_re.findall(content)
     if Type:
-        Type = Type[0].encode('utf8')
+        Type = Type[0].encode('gbk')
     else:
         Type = None
     return Type
@@ -84,7 +84,7 @@ def get_language(content):
     language_re = re.compile(u'◎语　　言[　]+?([\s\S]+?)<[\s\S]*?◎')
     language = language_re.findall(content)
     if language:
-        language = language[0].encode('utf8')
+        language = language[0].encode('gbk')
     else:
         language = None
     return language
@@ -94,7 +94,7 @@ def get_subtitles(content):
     subtitles_re = re.compile(u'◎字　　幕[　]+?([\s\S]+?)<[\s\S]*?◎')
     subtitles = subtitles_re.findall(content)
     if subtitles:
-        subtitles = subtitles[0].encode('utf8')
+        subtitles = subtitles[0].encode('gbk')
     else:
         subtitles = None
     return subtitles
@@ -104,7 +104,7 @@ def get_fileformat(content):
     fileformat_re = re.compile(u'◎文件格式[　]+?([\s\S]+?)<[\s\S]*?◎')
     fileformat = fileformat_re.findall(content)
     if fileformat:
-        fileformat = fileformat[0].encode('utf8')
+        fileformat = fileformat[0].encode('gbk')
     else:
         fileformat = None
     return fileformat
@@ -117,7 +117,7 @@ def get_width(content):
         width_re = re.compile(u'(\d*?) x \d*?')
         width = width_re.findall(moviesize[0])
         if width:
-            width = width[0].encode('utf8')
+            width = width[0].encode('gbk')
         else:
             width = None
     else:
@@ -132,7 +132,7 @@ def get_height(content):
         height_re = re.compile(u'\d*? x (\d*?)')
         height = height_re.findall(moviesize[0])
         if height:
-            height = height[0].encode('utf8')
+            height = height[0].encode('gbk')
         else:
             height = None
     else:
@@ -144,7 +144,7 @@ def get_size(content):
     size_re = re.compile(u'◎文件大小[　]+?([\s\S]+?)<[\s\S]*?◎')
     size = size_re.findall(content)
     if size:
-        size = size[0].encode('utf8')
+        size = size[0].encode('gbk')
     else:
         size = None
     return size
@@ -154,7 +154,7 @@ def get_duration(content):
     duration_re = re.compile(u'◎片[ 　]+?长[　]+?([\s\S]+?)<[\s\S]*?◎')
     duration = duration_re.findall(content)
     if duration:
-        duration = duration[0].encode('utf8')
+        duration = duration[0].encode('gbk')
     else:
         duration = None
     return duration
@@ -164,7 +164,7 @@ def get_director(content):
     director_re = re.compile(u'◎导　　演[　]+?([\s\S]+?)<[\s\S]*?◎')
     director = director_re.findall(content)
     if director:
-        director = director[0].encode('utf8')
+        director = director[0].encode('gbk')
     else:
         director = None
     return director
@@ -178,7 +178,7 @@ def get_actors(content):
         l = len(actors)
         for i in range(l):
             actors[i] = actors[i].strip()
-            actors[i] = actors[i].encode('utf8')
+            actors[i] = actors[i].encode('gbk')
     return actors
 
 def get_introduce(content):
@@ -197,7 +197,7 @@ def get_introduce(content):
         introduce = introduce.split('<br />')
         l = len(introduce)
         for i in range(l):
-            introduce[i] = introduce[i].encode('utf8')
+            introduce[i] = introduce[i].encode('gbk')
     else:
         introduce = None
     
@@ -208,7 +208,7 @@ def get_introduceimageurl(content):
     introduceimageurl_re = re.compile(u'◎片　　名[\s\S]*?src="(.*?)"[\s\S]*?</p>')
     introduceimageurl = introduceimageurl_re.findall(content)
     if introduceimageurl:
-        introduceimageurl = introduceimageurl[0].encode('utf8')
+        introduceimageurl = introduceimageurl[0].encode('gbk')
     else:
         introduceimageurl = None
     return introduceimageurl
@@ -218,7 +218,7 @@ def get_downloadlink(content):
     downloadlink_re = re.compile('<td.+?bgcolor="#fdfddf"><a href="(.+?)">')
     downloadlink = downloadlink_re.findall(content)   
     if downloadlink:
-        downloadlink = downloadlink[0].encode('utf8')
+        downloadlink = downloadlink[0].encode('gbk')
     else:
         downloadlink = None
     return downloadlink
@@ -226,9 +226,24 @@ def get_downloadlink(content):
 
 # ------------我是华丽的分割线-----------------------------
 
+def set_Count():
+    global Count
+    Count['movies'] = 0
+    Count['chnames'] = 0
+    Count['names'] = 0
+    Count['types'] = 0
+    Count['languages'] = 0
+    Count['actors'] = 0
+    Count['introduces'] = 0
+    Count['iiurls'] = 0
+    Count['durls'] = 0
+
 def save_movie(con):
     movie = {}
     movie["title"] = get_title(con)
+    movie["publishdate"] = get_publishdate(con)
+    movie["imageurl"] = get_imageurl(con)
+    movie["chname"] = get_chname(con)
     movie["name"] = get_name(con)
     movie["type"] = get_type(con)
     movie["language"] = get_language(con)
@@ -243,6 +258,7 @@ def save_movie(con):
     movie["introduce"] = get_introduce(con)
     movie["introduceimageurl"] = get_introduceimageurl(con)
     movie["downloadlink"] = get_downloadlink(con)
+    print movie['title']
     return movie
 
     
@@ -272,6 +288,38 @@ def get_page_info( url):
     except:
         return get_page_info(url)
 
+def save(movie):
+    global Count
+    Count['movies'] = Count['movies']+1
+    conn = MySQLdb.connect(host='localhost',user='root',passwd='123456',db='dyttmovie',port=3306,charset='gbk')
+    cur=conn.cursor()
+
+    #插入总表
+    values = []
+    values.append(Count['movies'])
+    values.append(movie['title'])
+    values.append(movie['publishdate'])
+    values.append(movie['imageurl'])
+    values.append(movie['subtitles'])
+    values.append(movie['fileformat'])
+    values.append(movie['width'])
+    values.append(movie['height'])
+    values.append(movie['size'])
+    values.append(movie['duration'])
+    values.append(movie['director'])
+    print values
+    cur.execute('insert into movies values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',values)
+
+
+
+    
+    conn.commit()
+    
+    cur.close()
+    conn.close()
+    
+    
+
 def run( url):
     content = get_page_info(url)
     ft = re.compile('<a href="(.*?)" class="ulink">')
@@ -280,9 +328,7 @@ def run( url):
         new_url = 'http://www.ygdy8.net' + item
         content = get_page_info(new_url)
         movie = save_movie(content)
-        
-        if movie['title']:
-            movielist.append(movie)
+        save(movie)
 
 def get_page_number():
     url = 'http://www.ygdy8.net/html/gndy/dyzz/index.html'
@@ -291,16 +337,9 @@ def get_page_number():
     number = url_re.findall(content)
     return int(number[0])
 
-def save():
-    moviecount = len(movielist)
-    movie_list = {'moviecount' : moviecount,'movielist':movielist}
-    movie = [movie_list]
-    movie_json = json.dumps(movie,sort_keys=False,ensure_ascii=False)
-    #print movie_json
-    json.dump(movie_json,fp = file_name,ensure_ascii=False)
-    file_name.close()
 
 if __name__ == '__main__':
+    set_Count()
     page_number = get_page_number()
     print '共',page_number,'页'
     for i in range(10):

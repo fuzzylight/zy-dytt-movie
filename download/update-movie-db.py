@@ -7,11 +7,11 @@ import time
 import json
 import proxyIP,user_agents
 import random
+import MySQLdb
+import sys
 
+Count = {}
 
-file_name = open('fytt.json','w')
-
-movielist = []
 
 def get_title(content):
     """ 获得标题名字 """
@@ -226,9 +226,24 @@ def get_downloadlink(content):
 
 # ------------我是华丽的分割线-----------------------------
 
+def set_Count():
+    global Count
+    Count['movies'] = 0
+    Count['chnames'] = 0
+    Count['names'] = 0
+    Count['types'] = 0
+    Count['languages'] = 0
+    Count['actors'] = 0
+    Count['introduces'] = 0
+    Count['iiurls'] = 0
+    Count['durls'] = 0
+
 def save_movie(con):
     movie = {}
     movie["title"] = get_title(con)
+    movie["publishdate"] = get_publishdate(con)
+    movie["imageurl"] = get_imageurl(con)
+    movie["chname"] = get_chname(con)
     movie["name"] = get_name(con)
     movie["type"] = get_type(con)
     movie["language"] = get_language(con)
@@ -243,6 +258,7 @@ def save_movie(con):
     movie["introduce"] = get_introduce(con)
     movie["introduceimageurl"] = get_introduceimageurl(con)
     movie["downloadlink"] = get_downloadlink(con)
+    print movie['title']
     return movie
 
     
@@ -272,17 +288,49 @@ def get_page_info( url):
     except:
         return get_page_info(url)
 
+def save(movie):
+    global Count
+    Count['movies'] = Count['movies']+1
+    conn = MySQLdb.connect(host='localhost',user='root',passwd='123456',db='dyttmovie',port=3306,charset='utf8')
+    cur=conn.cursor()
+
+    #插入总表
+    values = []
+    values.append(Count['movies'])
+    values.append(movie['title'])
+    values.append(movie['publishdate'])
+    values.append(movie['imageurl'])
+    values.append(movie['subtitles'])
+    values.append(movie['fileformat'])
+    values.append(movie['width'])
+    values.append(movie['height'])
+    values.append(movie['size'])
+    values.append(movie['duration'])
+    values.append(movie['director'])
+    print values
+    cur.execute('insert into movies values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',values)
+
+     
+
+    
+    conn.commit()
+    
+    cur.close()
+    conn.close()
+    
+    
+
 def run( url):
     content = get_page_info(url)
+    
     ft = re.compile('<a href="(.*?)" class="ulink">')
     urls = ft.findall(content)
     for item in urls:
         new_url = 'http://www.ygdy8.net' + item
         content = get_page_info(new_url)
         movie = save_movie(content)
+        save(movie)
         
-        if movie['title']:
-            movielist.append(movie)
 
 def get_page_number():
     url = 'http://www.ygdy8.net/html/gndy/dyzz/index.html'
@@ -291,16 +339,10 @@ def get_page_number():
     number = url_re.findall(content)
     return int(number[0])
 
-def save():
-    moviecount = len(movielist)
-    movie_list = {'moviecount' : moviecount,'movielist':movielist}
-    movie = [movie_list]
-    movie_json = json.dumps(movie,sort_keys=False,ensure_ascii=False)
-    #print movie_json
-    json.dump(movie_json,fp = file_name,ensure_ascii=False)
-    file_name.close()
 
 if __name__ == '__main__':
+    set_Count()
+    print 1
     page_number = get_page_number()
     print '共',page_number,'页'
     for i in range(10):
